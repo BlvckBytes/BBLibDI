@@ -1,5 +1,6 @@
 package me.blvckbytes.bblibdi;
 
+import lombok.Getter;
 import me.blvckbytes.bblibutil.Tuple;
 import me.blvckbytes.bblibutil.logger.ILogger;
 import org.bukkit.Bukkit;
@@ -38,15 +39,17 @@ public class AutoConstructer implements IAutoConstructer {
   // Cache for @AutoConstruct'ed class fields that are waiting for late init injections
   private final Map<Class<?>, List<Tuple<Object, Field>>> lateinits;
 
+  private List<Class<?>> classes;
   private final JavaPlugin plugin;
 
   public AutoConstructer(JavaPlugin plugin) throws Exception {
     this.plugin = plugin;
 
-    refs = new LinkedList<>();
-    lateinits = new HashMap<>();
+    this.refs = new LinkedList<>();
+    this.lateinits = new HashMap<>();
+    this.classes = new ArrayList<>();
 
-    execute();
+    this.execute();
   }
 
   //=========================================================================//
@@ -58,6 +61,11 @@ public class AutoConstructer implements IAutoConstructer {
     return this.refs.stream()
       .map(ConstructedRef::getInst)
       .collect(Collectors.toUnmodifiableSet());
+  }
+
+  @Override
+  public Collection<Class<?>> getClasses() {
+    return Collections.unmodifiableCollection(this.classes);
   }
 
   //=========================================================================//
@@ -83,11 +91,10 @@ public class AutoConstructer implements IAutoConstructer {
   }
 
   /**
-   * Find all classes within the provided package that make use of {@link AutoConstruct}
-   *
+   * Find all classes within the provided package
    * @param pkg Package to search for targets in
    */
-  private List<Class<?>> findAnnotatedClasses(String pkg) {
+  private List<Class<?>> findAllClasses(String pkg) {
     List<Class<?>> classes = new ArrayList<>();
 
     try {
@@ -126,11 +133,7 @@ public class AutoConstructer implements IAutoConstructer {
       e.printStackTrace();
     }
 
-    // Only return classes that have the matching annotation applied
-    return classes
-      .stream()
-      .filter(c -> c.isAnnotationPresent(AutoConstruct.class))
-      .collect(Collectors.toList());
+    return classes;
   }
 
   /**
@@ -140,11 +143,15 @@ public class AutoConstructer implements IAutoConstructer {
    * @throws Exception Errors during instantiation of modules
    */
   private void execute() throws Exception {
-    // Find all classes in the target package
-    List<Class<?>> classes = findAnnotatedClasses(plugin.getClass().getPackageName());
+    this.classes = findAllClasses(plugin.getClass().getPackageName());
 
     // Mapping classes to a chosen constructor, which either has no deps or only @AutoInject dep parameters
-    Map<Class<?>, Constructor<?>> ctorMap = selectConstructors(classes);
+    Map<Class<?>, Constructor<?>> ctorMap = selectConstructors(
+      // Only return classes that have the matching annotation applied
+      this.classes.stream()
+        .filter(c -> c.isAnnotationPresent(AutoConstruct.class))
+        .collect(Collectors.toList())
+    );
 
     // Resolve all dependencies recursively
     List<Class<?>> seen = new ArrayList<>();

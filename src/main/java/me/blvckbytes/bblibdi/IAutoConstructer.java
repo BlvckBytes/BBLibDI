@@ -14,4 +14,10 @@ public interface IAutoConstructer {
    * Get all instantiated {@link AutoConstruct} resources
    */
   Collection<Object> getAllInstances();
+
+  /**
+   * Get all classes within the plugin's root package
+   */
+  Collection<Class<?>> getClasses();
+
 }
