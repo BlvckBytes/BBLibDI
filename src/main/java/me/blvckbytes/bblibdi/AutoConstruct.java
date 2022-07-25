@@ -27,4 +27,11 @@ public @interface AutoConstruct {
    * depending on at runtime, after instantiation
    */
   Class<?>[] typeDependencies() default {};
+
+  /**
+   * Whether this is only a temporary helper class which does not
+   * need to be registered after creation and will thus soon be garbage collected
+   */
+  boolean temporary() default false;
+
 }

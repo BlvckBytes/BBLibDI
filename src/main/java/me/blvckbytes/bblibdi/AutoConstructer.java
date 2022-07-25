@@ -1,6 +1,5 @@
 package me.blvckbytes.bblibdi;
 
-import lombok.Getter;
 import me.blvckbytes.bblibutil.Tuple;
 import me.blvckbytes.bblibutil.logger.ILogger;
 import org.bukkit.Bukkit;
@@ -388,7 +387,7 @@ public class AutoConstructer implements IAutoConstructer {
         throw new RuntimeException("@AutoConstruct plugin dependency not loaded: " + pluginDep);
     }
 
-    // Check for unknown dependencies
+    // Check for existing constructor
     Constructor<?> targetC = ctorMap.get(target);
     if (targetC == null)
       throw new RuntimeException("Could not find @AutoInject dependency: " + target.getName());
@@ -399,7 +398,10 @@ public class AutoConstructer implements IAutoConstructer {
       // Invoke empty constructor
       Object inst = targetC.newInstance();
       onInstantiation(inst, vanillaC);
-      refs.add(new ConstructedRef(target, inst));
+
+      // Don't add temporaries
+      if (!ac.temporary())
+        refs.add(new ConstructedRef(target, inst));
 
       // As this dependency now exists, remove it from the seen list, as it
       // cannot cause any further circular dependencies
@@ -464,7 +466,11 @@ public class AutoConstructer implements IAutoConstructer {
     }
 
     onInstantiation(inst, vanillaC);
-    refs.add(new ConstructedRef(target, inst));
+
+    // Don't add temporaries
+    if (!ac.temporary())
+      refs.add(new ConstructedRef(target, inst));
+
     return inst;
   }
 
