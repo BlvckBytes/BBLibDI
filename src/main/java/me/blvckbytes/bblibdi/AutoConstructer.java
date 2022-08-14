@@ -60,8 +60,6 @@ public class AutoConstructer implements IAutoConstructer {
     this.refs = new LinkedList<>();
     this.lateinits = new HashMap<>();
     this.classes = new ArrayList<>();
-
-    this.execute();
   }
 
   //=========================================================================//
@@ -154,7 +152,7 @@ public class AutoConstructer implements IAutoConstructer {
    *
    * @throws Exception Errors during instantiation of modules
    */
-  private void execute() throws Exception {
+  public void execute() throws Exception {
     this.classes = findAllClasses(plugin.getClass().getPackageName());
 
     // Mapping classes to a chosen constructor, which either has no deps or only @AutoInject dep parameters
