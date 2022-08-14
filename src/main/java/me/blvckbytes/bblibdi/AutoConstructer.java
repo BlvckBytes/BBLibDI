@@ -180,7 +180,7 @@ public class AutoConstructer implements IAutoConstructer {
 
     ILogger logger = findLogger();
     if (logger != null)
-      logger.logInfo("All resources have been instantiated");
+      logger.logInfo("All internal modules have been loaded.");
   }
 
   /**
