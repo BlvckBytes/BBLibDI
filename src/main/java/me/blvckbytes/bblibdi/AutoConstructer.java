@@ -54,7 +54,7 @@ public class AutoConstructer implements IAutoConstructer {
   private List<Class<?>> classes;
   private final JavaPlugin plugin;
 
-  public AutoConstructer(JavaPlugin plugin) throws Exception {
+  public AutoConstructer(JavaPlugin plugin) {
     this.plugin = plugin;
 
     this.refs = new LinkedList<>();
@@ -104,9 +104,10 @@ public class AutoConstructer implements IAutoConstructer {
    * Find all classes within the provided package
    * @param pkg Package to search for targets in
    */
-  private List<Class<?>> findAllClasses(String pkg) {
+  private List<Class<?>> findAllClasses(String pkg) throws Exception {
     List<Class<?>> classes = new ArrayList<>();
 
+    JarFile jf = null;
     try {
       // Get the executing jar's file path
       String fpath = new File(
@@ -117,7 +118,7 @@ public class AutoConstructer implements IAutoConstructer {
       String pathPkg = pkg.replace(".", "/");
 
       // Load the jar file by it's path
-      JarFile jf = new JarFile(fpath);
+      jf = new JarFile(fpath);
 
       // Loop all of it's entries (packages, classes, files, ...)
       jf.entries().asIterator().forEachRemaining(je -> {
@@ -139,8 +140,9 @@ public class AutoConstructer implements IAutoConstructer {
       });
 
       jf.close();
-    } catch (Exception e) {
-      e.printStackTrace();
+    } finally {
+      if (jf != null)
+        jf.close();
     }
 
     return classes;
